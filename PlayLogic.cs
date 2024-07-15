@@ -17,10 +17,13 @@ public class PlayLogic : MonoBehaviour
     private bool isDirectionRight = true;
 
     private Rigidbody2D rb2d;
+
+    private SanityController sanityController;
     // Start is called before the first frame update
     void Start()
     {
         rb2d = GetComponent<Rigidbody2D>();
+        sanityController = FindObjectOfType<SanityController>();
     }
 
     // Update is called once per frame
@@ -109,6 +112,29 @@ public class PlayLogic : MonoBehaviour
     {
         anim.SetFloat("VerticalAnim", rb2d.velocity.y);
         anim.SetBool("GroundCheck", isGroundCheck);
+    }
+
+    public void TakeDamage(int damage)
+    {
+        sanityController.TakeDamage(damage);
+        if (sanityController.currentSanity <= 0)
+        {
+            // Lógica para game over ou respawn
+            Debug.Log("Game Over");
+        }
+    }
+    public void RecoverSanity(int amount)
+    {
+        sanityController.RecoverSanity(amount);
+    }
+
+    void OnTriggerEnter2D(Collider2D other)
+    {
+        if (other.gameObject.CompareTag("Beer"))
+        {
+            RecoverSanity(20); // Quantidade de sanidade recuperada ao pegar uma cerveja
+            Destroy(other.gameObject);
+        }
     }
 
 }
