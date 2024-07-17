@@ -7,7 +7,7 @@ public class PlayLogic : MonoBehaviour
     [SerializeField] private Transform groundCheck;
     [SerializeField] private float groundDist;
     [SerializeField] private LayerMask groundLayer;
-    [SerializeField] private Animator anim;
+    [SerializeField] public Animator anim;
 
     private bool canJump;
     private bool isGroundCheck;
@@ -15,6 +15,12 @@ public class PlayLogic : MonoBehaviour
     [SerializeField] private float jumpForce;
     private float inputDirection;
     private bool isDirectionRight = true;
+
+    public float kBForce;
+    public float kBCount;
+    public float kBTime;
+
+    public bool isKnoginRight;
 
     private Rigidbody2D rb2d;
 
@@ -37,8 +43,28 @@ public class PlayLogic : MonoBehaviour
     }
     private void FixedUpdate()
     {
-        MoveLogic();
+        KnockLogic();
         CheckArea();
+    }
+
+    void KnockLogic()
+    {
+        if(kBCount <= 0)
+        {
+            MoveLogic();
+        }
+        else
+        {
+            if (isKnoginRight)
+            {
+                rb2d.velocity = new Vector2(-kBForce, kBForce);
+            }
+            if (!isKnoginRight)
+            {
+                rb2d.velocity = new Vector2(kBForce, kBForce);
+            }
+        }
+        kBCount -= Time.deltaTime;
     }
     void CanJump()
     {
@@ -130,11 +156,12 @@ public class PlayLogic : MonoBehaviour
 
     void OnTriggerEnter2D(Collider2D other)
     {
-        if (other.gameObject.CompareTag("Beer"))
+        if (other.gameObject.CompareTag("Beer") && sanityController.currentSanity <100)
         {
-            RecoverSanity(20); // Quantidade de sanidade recuperada ao pegar uma cerveja
+            RecoverSanity(20); 
             Destroy(other.gameObject);
         }
+
     }
 
 }

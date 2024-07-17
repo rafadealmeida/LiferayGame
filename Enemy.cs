@@ -55,6 +55,16 @@ public class Enemy : MonoBehaviour
             if (player != null)
             {
                 player.TakeDamage(damage);
+                player.anim.SetTrigger("TakeDamage");
+                player.kBCount = player.kBTime;
+                if (collision.transform.position.x <= transform.position.x)
+                {
+                    player.isKnoginRight = true;
+                }
+                if (collision.transform.position.x > transform.position.x)
+                {
+                    player.isKnoginRight = false;
+                }
             }
 
             if ( sanityController.currentSanity == damage)
@@ -74,6 +84,6 @@ public class Enemy : MonoBehaviour
 
     void RealoadScene()
     {
-        SceneManager.LoadScene("Level1");
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 }
