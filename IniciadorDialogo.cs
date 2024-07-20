@@ -4,24 +4,13 @@ using UnityEngine;
 
 public class IniciadorDialogo : MonoBehaviour
 {
-    [SerializeField]
-    private GerenciadorDeDialogo _gerenciador;
+    public Dialogo dialogo;
 
-    [SerializeField]
-    private Dialogo _dialogo;
-public void Inicializa()
+    void OnTriggerEnter2D(Collider2D other)
     {
-        if(_dialogo == null)
+        if (other.CompareTag("Player"))
         {
-            return;
+            FindObjectOfType<GerenciadorDeDialogo>().IniciarDialogo(dialogo);
         }
-
-        _gerenciador.Inicializa(_dialogo);
     }
-
-public void Log()
-{
-        Debug.Log("Clicou");
-}
-
 }

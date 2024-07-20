@@ -1,25 +1,12 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-[Serializable]
-public class Dialogo 
+[System.Serializable]
+public class Dialogo
 {
-    [SerializeField]
-    private TextoDialogo[] _frases;
-
-    [SerializeField]
-    private string _nomeNpc;
-
-    public TextoDialogo[] GetFrases()
-    {
-        return _frases;
-
-    }
-    public string GetNomeNpc()
-    {
-        return _nomeNpc;
-
-    }
+    [TextArea(1, 4)]
+    public string[] locutores;
+    [TextArea(1, 4)]
+    public string[] sentencas;
 }
