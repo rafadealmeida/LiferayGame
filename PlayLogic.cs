@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayLogic : MonoBehaviour
@@ -13,7 +12,7 @@ public class PlayLogic : MonoBehaviour
     private bool isGroundCheck;
     [SerializeField] private float moveSpeed;
     [SerializeField] private float jumpForce;
-    private float inputDirection;
+    public static float inputDirection;
     private bool isDirectionRight = true;
 
     public float kBForce;
@@ -24,7 +23,13 @@ public class PlayLogic : MonoBehaviour
 
     private Rigidbody2D rb2d;
 
+    [SerializeField] private bool isAttacking;
+    private float attackDuration = 0.1f; // Duração do ataque
+    private float attackTimer;
+
     private SanityController sanityController;
+    private bool isMovementEnabled = true; // Flag para controlar se o movimento está habilitado
+
     // Start is called before the first frame update
     void Start()
     {
@@ -35,21 +40,38 @@ public class PlayLogic : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        GetInputMove();
+        if (isMovementEnabled) // Apenas permite movimento se estiver habilitado
+        {
+            GetInputMove();
+        }
         DirectionCheck();
         CanJump();
         MoveAnim();
         JumpAnim();
+
+        if (isAttacking)
+        {
+            attackTimer -= Time.deltaTime;
+            if (attackTimer <= 0)
+            {
+                isAttacking = false;
+                anim.SetBool("SimpleAttack", false);
+            }
+        }
     }
+
     private void FixedUpdate()
     {
-        KnockLogic();
-        CheckArea();
+        if (isMovementEnabled)
+        {
+            KnockLogic();
+            CheckArea();
+        }
     }
 
     void KnockLogic()
     {
-        if(kBCount <= 0)
+        if (kBCount <= 0)
         {
             MoveLogic();
         }
@@ -59,16 +81,17 @@ public class PlayLogic : MonoBehaviour
             {
                 rb2d.velocity = new Vector2(-kBForce, kBForce);
             }
-            if (!isKnoginRight)
+            else
             {
                 rb2d.velocity = new Vector2(kBForce, kBForce);
             }
         }
         kBCount -= Time.deltaTime;
     }
+
     void CanJump()
     {
-        if(isGroundCheck && rb2d.velocity.y <= 0)
+        if (isGroundCheck && rb2d.velocity.y <= 0)
         {
             canJump = true;
         }
@@ -102,10 +125,24 @@ public class PlayLogic : MonoBehaviour
 
     void GetInputMove()
     {
-        inputDirection = Input.GetAxisRaw("Horizontal");
-        if (Input.GetButtonDown("Jump"))
+        if (Input.GetButtonDown("Fire3") && !isAttacking)
         {
-            Jump();
+            isAttacking = true;
+            attackTimer = attackDuration;
+            anim.SetBool("SimpleAttack", true);
+        }
+
+        if (!isAttacking)
+        {
+            inputDirection = Input.GetAxisRaw("Horizontal");
+            if (Input.GetButtonDown("Jump"))
+            {
+                Jump();
+            }
+        }
+        else
+        {
+            inputDirection = 0; // Parar o movimento durante o ataque
         }
     }
 
@@ -116,7 +153,7 @@ public class PlayLogic : MonoBehaviour
 
     void MoveAnim()
     {
-        anim.SetFloat("HorizontalAnim", rb2d.velocity.x);
+        anim.SetFloat("HorizontalAnim", Mathf.Abs(rb2d.velocity.x));
     }
 
     void Flip()
@@ -129,8 +166,7 @@ public class PlayLogic : MonoBehaviour
     {
         if (canJump)
         {
-
-        rb2d.velocity = new Vector2(rb2d.velocity.x, jumpForce);
+            rb2d.velocity = new Vector2(rb2d.velocity.x, jumpForce);
         }
     }
 
@@ -149,6 +185,7 @@ public class PlayLogic : MonoBehaviour
             Debug.Log("Game Over");
         }
     }
+
     public void RecoverSanity(int amount)
     {
         sanityController.RecoverSanity(amount);
@@ -156,12 +193,31 @@ public class PlayLogic : MonoBehaviour
 
     void OnTriggerEnter2D(Collider2D other)
     {
-        if (other.gameObject.CompareTag("Beer") && sanityController.currentSanity <100)
+        if (other.gameObject.CompareTag("Beer") && sanityController.currentSanity < 100)
         {
-            RecoverSanity(20); 
+            RecoverSanity(20);
             Destroy(other.gameObject);
         }
+    }
 
+    public void DisableMovement(float duration)
+    {
+        StartCoroutine(DisableMovementCoroutine(duration));
+    }
+
+    private IEnumerator DisableMovementCoroutine(float duration)
+    {
+        isMovementEnabled = false;
+        rb2d.velocity = Vector2.zero; // Parar qualquer movimento atual
+        yield return new WaitForSeconds(duration);
+        isMovementEnabled = true;
+    }
+
+    public void EndAnimationATK()
+    {
+        // Lógica para ser executada ao final da animação
+        anim.SetBool("SimpleAttack", false);
+        isAttacking = false;
     }
 
 }
