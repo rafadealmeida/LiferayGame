@@ -1,69 +1,80 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using TMPro;
 using UnityEngine.UI;
+using TMPro;
 
 public class GerenciadorDeDialogo : MonoBehaviour
 {
-    [SerializeField]
-    private TextMeshProUGUI _nomeNpc;
-    [SerializeField]
-    private TextMeshProUGUI _texto;
-    [SerializeField]
-    private TextMeshProUGUI _btnContinua;
+    public TMP_Text nomeText;
+    public TMP_Text dialogoText;
+    public GameObject dialogoBox;
+    private Queue<string> sentencas;
+    private Queue<string> locutores; // Adicionando fila de locutores
 
-    [SerializeField]
-    private GameObject _caixaDeDialogo;
-
-    [SerializeField]
-    private float _digitaçãoDelay = 0.025f; 
-
-    private int _contador = 0;
-    private Dialogo _dialogoAtual;
-
-    internal void Inicializa(Dialogo dialogo)
+    void Start()
     {
-        _contador = 0;
-        _dialogoAtual = dialogo;
-        ProximaFrase();
+        sentencas = new Queue<string>();
+        locutores = new Queue<string>(); // Inicializa a fila de locutores
     }
 
-    private void ProximaFrase()
+    public void IniciarDialogo(Dialogo dialogo) // Este método inicializa o diálogo
     {
-        if (_dialogoAtual == null)
+        dialogoBox.SetActive(true);
+
+        sentencas.Clear();
+        locutores.Clear(); // Limpa a fila de locutores
+
+        foreach (string locutor in dialogo.locutores)
         {
-            Debug.LogWarning("O diálogo atual é nulo");
+            locutores.Enqueue(locutor); // Adiciona cada locutor na fila
+        }
+
+        foreach (string sentenca in dialogo.sentencas)
+        {
+            sentencas.Enqueue(sentenca);
+        }
+
+        ProximaSentenca();
+    }
+
+    public void ProximaSentenca()
+    {
+        if (sentencas.Count == 0)
+        {
+            FimDeDialogo();
             return;
         }
 
-        if (_contador >= _dialogoAtual.GetFrases().Length)
-        {
-            _caixaDeDialogo.SetActive(false);
-            _dialogoAtual = null;
-            _contador = 0;
-            return;
-        }
+        string sentenca = sentencas.Dequeue();
+        string locutor = locutores.Dequeue(); // Pega o locutor correspondente
 
-        _nomeNpc.text = _dialogoAtual.GetNomeNpc();
-        _caixaDeDialogo.SetActive(true);
-        StartCoroutine(EscreverTexto(_dialogoAtual.GetFrases()[_contador].GetFrase()));
-        _btnContinua.text = _dialogoAtual.GetFrases()[_contador].GetBotaoContinuar();
+        nomeText.text = locutor; // Exibe o nome do locutor
+        StopAllCoroutines();
+        StartCoroutine(DigitarSentenca(sentenca));
     }
 
-    private IEnumerator EscreverTexto(string texto)
+    IEnumerator DigitarSentenca(string sentenca)
     {
-        _texto.text = ""; 
-        foreach (char letra in texto.ToCharArray())
+        dialogoText.text = "";
+        foreach (char letra in sentenca.ToCharArray())
         {
-            _texto.text += letra; 
-            yield return new WaitForSeconds(_digitaçãoDelay); 
+            dialogoText.text += letra;
+            yield return null;
         }
     }
 
-    public void AvancarDialogo()
+    void FimDeDialogo()
     {
-        _contador++;
-        ProximaFrase();
+        dialogoBox.SetActive(false);
+        Debug.Log("Fim do diálogo.");
+    }
+
+    void Update()
+    {
+        if (dialogoBox.activeSelf && Input.GetMouseButtonDown(0)) // Avança ao clicar na caixa de diálogo
+        {
+            ProximaSentenca();
+        }
     }
 }

@@ -7,6 +7,8 @@ public class PlayLogic : MonoBehaviour
     [SerializeField] private float groundDist;
     [SerializeField] private LayerMask groundLayer;
     [SerializeField] public Animator anim;
+    [SerializeField] private AudioSource footstepAudioSource; // Adicione esta linha
+    [SerializeField] private AudioClip footstepClip; // Adicione esta linha
 
     private bool canJump;
     private bool isGroundCheck;
@@ -35,6 +37,12 @@ public class PlayLogic : MonoBehaviour
     {
         rb2d = GetComponent<Rigidbody2D>();
         sanityController = FindObjectOfType<SanityController>();
+        if (footstepAudioSource == null)
+        {
+            footstepAudioSource = gameObject.AddComponent<AudioSource>();
+        }
+        footstepAudioSource.clip = footstepClip;
+        footstepAudioSource.loop = true; // Loop the footsteps sound
     }
 
     // Update is called once per frame
@@ -56,6 +64,20 @@ public class PlayLogic : MonoBehaviour
             {
                 isAttacking = false;
                 anim.SetBool("SimpleAttack", false);
+            }
+        }
+        if (Mathf.Abs(rb2d.velocity.x) > 0.1f && isGroundCheck)
+        {
+            if (!footstepAudioSource.isPlaying)
+            {
+                footstepAudioSource.Play();
+            }
+        }
+        else
+        {
+            if (footstepAudioSource.isPlaying)
+            {
+                footstepAudioSource.Stop();
             }
         }
     }
