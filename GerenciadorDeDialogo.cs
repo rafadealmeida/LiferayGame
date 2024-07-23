@@ -11,6 +11,10 @@ public class GerenciadorDeDialogo : MonoBehaviour
     public GameObject dialogoBox;
     private Queue<string> sentencas;
     private Queue<string> locutores; // Adicionando fila de locutores
+    public GameObject invisibleCollider;
+    private bool isSamuelDialogue;
+    private bool isDropKey;
+    public ItemSpawner itemSpawner;
 
     void Start()
     {
@@ -18,9 +22,11 @@ public class GerenciadorDeDialogo : MonoBehaviour
         locutores = new Queue<string>(); // Inicializa a fila de locutores
     }
 
-    public void IniciarDialogo(Dialogo dialogo) // Este método inicializa o diálogo
+    public void IniciarDialogo(Dialogo dialogo, bool isSamuel = false, bool dropKey = false) // Este método inicializa o diálogo
     {
         dialogoBox.SetActive(true);
+        isSamuelDialogue = isSamuel;
+        isDropKey = dropKey;
 
         sentencas.Clear();
         locutores.Clear(); // Limpa a fila de locutores
@@ -67,14 +73,25 @@ public class GerenciadorDeDialogo : MonoBehaviour
     void FimDeDialogo()
     {
         dialogoBox.SetActive(false);
-        Debug.Log("Fim do diálogo.");
+        if (isSamuelDialogue && invisibleCollider != null) // Modifique esta linha
+        {
+            Destroy(invisibleCollider);
+        }
+        if (isDropKey) // Modifique esta linha
+        {
+            itemSpawner.SpawnItem();
+        }
     }
 
     void Update()
     {
-        if (dialogoBox.activeSelf && Input.GetMouseButtonDown(0)) // Avança ao clicar na caixa de diálogo
+        if (dialogoBox.activeSelf && (Input.GetMouseButtonDown(0))) 
         {
             ProximaSentenca();
         }
+ /*       else if (dialogoBox.activeSelf && (Input.GetMouseButtonDown(0) || Input.GetButtonDown("Interage") ))
+        {
+            ProximaSentenca();
+        }*/
     }
 }
