@@ -9,6 +9,7 @@ public class PlayLogic : MonoBehaviour
     [SerializeField] public Animator anim;
     [SerializeField] private AudioSource footstepAudioSource; // Adicione esta linha
     [SerializeField] private AudioClip footstepClip; // Adicione esta linha
+    [SerializeField] private AudioClip attackClip; // Adicione esta linha para o áudio do ataque
 
     private bool canJump;
     private bool isGroundCheck;
@@ -43,6 +44,12 @@ public class PlayLogic : MonoBehaviour
         }
         footstepAudioSource.clip = footstepClip;
         footstepAudioSource.loop = true; // Loop the footsteps sound
+
+        // Adicione um AudioSource para o som de ataque se não existir
+        if (GetComponent<AudioSource>() == null)
+        {
+            gameObject.AddComponent<AudioSource>();
+        }
     }
 
     // Update is called once per frame
@@ -62,10 +69,11 @@ public class PlayLogic : MonoBehaviour
             attackTimer -= Time.deltaTime;
             if (attackTimer <= 0)
             {
-                isAttacking = false;
-                anim.SetBool("SimpleAttack", false);
+                EndAttack();
             }
         }
+
+        // Controle do áudio dos passos
         if (Mathf.Abs(rb2d.velocity.x) > 0.1f && isGroundCheck)
         {
             if (!footstepAudioSource.isPlaying)
@@ -152,6 +160,7 @@ public class PlayLogic : MonoBehaviour
             isAttacking = true;
             attackTimer = attackDuration;
             anim.SetBool("SimpleAttack", true);
+            PlayAttackSound(); // Reproduz o som de ataque
         }
 
         if (!isAttacking)
@@ -238,8 +247,20 @@ public class PlayLogic : MonoBehaviour
     public void EndAnimationATK()
     {
         // Lógica para ser executada ao final da animação
+        EndAttack();
+    }
+
+    private void EndAttack()
+    {
         anim.SetBool("SimpleAttack", false);
         isAttacking = false;
     }
 
+    private void PlayAttackSound()
+    {
+        if (attackClip != null)
+        {
+            AudioSource.PlayClipAtPoint(attackClip, transform.position);
+        }
+    }
 }

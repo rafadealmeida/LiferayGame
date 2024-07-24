@@ -17,6 +17,9 @@ public class Enemy : MonoBehaviour
 
     private SanityController sanityController;
 
+    [SerializeField] private AudioClip deathClip; // Adicione esta linha para o áudio de morte
+    private AudioSource audioSource; // Adicione esta linha
+
     void Start()
     {
         sanityController = FindObjectOfType<SanityController>();
@@ -25,6 +28,16 @@ public class Enemy : MonoBehaviour
         if (pointsToMove.Length > 0)
         {
             transform.position = pointsToMove[currentPoint].position;
+        }
+
+        // Adicione o AudioSource ao GameObject se ainda não existir
+        if (GetComponent<AudioSource>() == null)
+        {
+            audioSource = gameObject.AddComponent<AudioSource>();
+        }
+        else
+        {
+            audioSource = GetComponent<AudioSource>();
         }
     }
 
@@ -88,7 +101,6 @@ public class Enemy : MonoBehaviour
         transform.localScale = Scale;
     }
 
-
     public void Die()
     {
         GetComponent<BoxCollider2D>().enabled = false;
@@ -96,7 +108,16 @@ public class Enemy : MonoBehaviour
         rb.bodyType = RigidbodyType2D.Kinematic;
         speed = 0;
         anim.SetTrigger("Death");
+        PlayDeathSound(); // Toca o som de morte
         Destroy(gameObject, 1f);
+    }
+
+    void PlayDeathSound()
+    {
+        if (deathClip != null)
+        {
+            audioSource.PlayOneShot(deathClip, 0.2f);
+        }
     }
 
     void ReloadScene()
